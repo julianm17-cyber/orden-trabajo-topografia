@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Orden de Trabajo - Topografía</title>
+
+  <!-- Tailwind (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- XLSX (SheetJS) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    /* Pequeños ajustes para impresión */
+    @media print {
+      body { -webkit-print-color-adjust: exact; }
+      .no-print { display: none !important; }
+      .print-table { page-break-inside: avoid; }
+    }
+
+    /* Scroll horizontal si la tabla es muy ancha en pantallas pequeñas */
+    .table-scroll { overflow-x: auto; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+  <div class="w-full min-h-screen bg-white p-6">
+    <div class="w-full px-2 max-w-[2200px] mx-auto">
+
+      <!-- Header -->
+      <div class="border-2 border-black mb-4">
+        <div class="bg-gray-200 text-center py-2 border-b-2 border-black">
+          <h1 class="text-xl font-bold">ORDEN DE TRABAJO TOPOGRAFÍA</h1>
+        </div>
+
+        <div class="grid grid-cols-2 border-b-2 border-black">
+          <div class="p-2 border-r-2 border-black">
+            <span class="font-bold">CÓDIGO: </span>
+            <input id="codigo" type="text" value="033P01F009"
+              class="border border-gray-300 px-2 py-1 ml-2 w-56" />
+          </div>
+          <div class="p-2">
+            <span class="font-bold">VERSIÓN: </span>
+            <input id="version" type="text" value="1"
+              class="border border-gray-300 px-2 py-1 ml-2 w-20" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 text-sm">
+          <div class="col-span-2 border-r-2 border-black">
+            <div class="p-2 border-b border-black">
+              <span class="font-bold">DEPARTAMENTO:</span>
+              <input id="departamento" type="text" value=""
+                class="border border-gray-300 px-2 py-1 ml-2 w-full mt-1" />
+            </div>
+
+            <div class="p-2 border-b border-black">
+              <span class="font-bold">DISTRIBUCIÓN:</span>
+              <input id="distribucion" type="text" value="CENTRO DE CONTROL MAESTRO DE AC Y ALC (CCM)"
+                class="border border-gray-300 px-2 py-1 ml-2 w-full mt-1" />
+            </div>
+
+            <div class="p-2 border-b border-black">
+              <span class="font-bold">ACTIVIDAD:</span>
+              <input id="actividad" type="text" value="GEOREFERENCIAR Y REPLANTEAR REDES DE ACUEDUCTO"
+                class="border border-gray-300 px-2 py-1 ml-2 w-full mt-1" />
+            </div>
+
+            <div class="p-2 border-b border-black">
+              <span class="font-bold">INTEGRANTES EMCALI (Nombre y Registro):</span>
+              <textarea id="integrantes"
+                class="border border-gray-300 px-2 py-1 ml-2 w-full mt-1"
+                rows="2">VLADIMIR GARCES (PS), DARWIIN CANDEDE (PS)</textarea>
+            </div>
+
+            <div class="p-2">
+              <span class="font-bold">CONDUCE:</span>
+              <input id="conduce" type="text" value="JULIAN ANDRES MONTOYA PLAZA (20333)"
+                class="border border-gray-300 px-2 py-1 ml-2 w-full mt-1" />
+            </div>
+          </div>
+
+          <div>
+            <div class="p-2 border-b border-black">
+              <div class="font-bold mb-2">FECHA</div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="text-xs">AÑO</label>
+                  <input id="fecha_anio" type="text" value="2025"
+                    class="border border-gray-300 px-1 py-1 w-full" />
+                </div>
+                <div>
+                  <label class="text-xs">MES</label>
+                  <input id="fecha_mes" type="text" value="09"
+                    class="border border-gray-300 px-1 py-1 w-full" />
+                </div>
+                <div>
+                  <label class="text-xs">DÍA</label>
+                  <input id="fecha_dia" type="text" value="24"
+                    class="border border-gray-300 px-1 py-1 w-full" />
+                </div>
+              </div>
+            </div>
+
+            <div class="p-2 border-b border-black">
+              <label class="text-xs font-bold">HORA SALIDA:</label>
+              <input id="horaSalida" type="text" value="10:05"
+                class="border border-gray-300 px-2 py-1 w-full mt-1" />
+            </div>
+
+            <div class="p-2 border-b border-black">
+              <label class="text-xs font-bold">HORA ENTRADA:</label>
+              <input id="horaEntrada" type="text" value="18:35"
+                class="border border-gray-300 px-2 py-1 w-full mt-1" />
+            </div>
+
+            <div class="p-2 border-b border-black">
+              <label class="text-xs font-bold">ORDEN No.:</label>
+              <input id="ordenNo" type="text" value=""
+                class="border border-gray-300 px-2 py-1 w-full mt-1" />
+            </div>
+
+            <div class="p-2">
+              <label class="text-xs font-bold">PLACAS VEHÍCULO:</label>
+              <input id="placasVehiculo" type="text" value="ONK 254"
+                class="border border-gray-300 px-2 py-1 w-full mt-1" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actividades (tabla editable) -->
+      <div class="border-2 border-black table-scroll">
+        <table id="activitiesTable" class="w-full text-xs border-collapse min-w-[1200px] print-table">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="border border-black p-1 min-w-[180px]">Actividad a Realizar</th>
+              <th class="border border-black p-1 min-w-[140px]">Dirección Programación</th>
+              <th class="border border-black p-1 min-w-[140px]">Proyecto / Barrio</th>
+              <th class="border border-black p-1 w-12">Comuna</th>
+              <th class="border border-black p-1 w-16">Municipio</th>
+              <th class="border border-black p-1 w-16">Tipo Proyecto</th>
+              <th class="border border-black p-1 w-16">Hora Inicio</th>
+              <th class="border border-black p-1 w-16">Hora Termina</th>
+              <th class="border border-black p-1 w-16">Ref. Ensamblador</th>
+              <th class="border border-black p-1 min-w-[140px]">Dirección Ejecución</th>
+              <th class="border border-black p-1 w-12">Plano No.</th>
+              <th class="border border-black p-1 w-12">Cartera Trayecto No.</th>
+              <th class="border border-black p-1 w-12">Pág.</th>
+              <th class="border border-black p-1 w-20">Instalada / Empleada</th>
+              <th class="border border-black p-1 w-20">Fecha Próxima</th>
+              <th class="border border-black p-1 w-16">Estado Actividad</th>
+              <th class="border border-black p-1 w-16">Estado Obra</th>
+              <th class="border border-black p-1 min-w-[180px]">Observaciones</th>
+              <th class="border border-black p-1 w-12">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="activitiesBody">
+            <!-- Filas se inyectan con JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer editable -->
+      <div class="border-2 border-black mt-4 p-3 bg-gray-50">
+        <div class="mb-3">
+          <label class="font-bold text-sm block mb-1">OBSERVACIONES:</label>
+          <textarea id="footer_observaciones"
+            class="w-full border border-gray-300 px-3 py-2 text-sm rounded"
+            rows="2">PRESENTACIÓN PREVENCIÓN CONTRA EL CÁNCER DE PIEL Y PRÓSTATA 8:30 - 9:20</textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-3">
+          <div>
+            <div class="mb-2">
+              <label class="font-bold text-xs block">PROGRAMA:</label>
+              <input id="footer_programa" class="w-full border border-gray-300 px-2 py-1 text-sm rounded"
+                value="JULIAN ANDRES MONTOYA PLAZA" />
+            </div>
+            <div class="mb-2">
+              <label class="font-bold text-xs block">NOMBRE:</label>
+              <input id="footer_nombre1" class="w-full border border-gray-300 px-2 py-1 text-sm rounded"
+                value="JULIAN ANDRES MONTOYA PLAZA" />
+            </div>
+            <div class="mb-2">
+              <label class="font-bold text-xs block">REGISTRO:</label>
+              <input id="footer_registro" class="w-full border border-gray-300 px-2 py-1 text-sm rounded"
+                value="20333" />
+            </div>
+          </div>
+
+          <div>
+            <div class="mb-2">
+              <label class="font-bold text-xs block">EJECUTA:</label>
+              <input id="footer_ejecuta" class="w-full border border-gray-300 px-2 py-1 text-sm rounded"
+                value="JULIAN ANDRES MONTOYA PLAZA" />
+            </div>
+            <div class="mb-2">
+              <label class="font-bold text-xs block">NOMBRE:</label>
+              <input id="footer_nombre2" class="w-full border border-gray-300 px-2 py-1 text-sm rounded"
+                value="JULIAN ANDRES MONTOYA PLAZA" />
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t pt-3">
+          <div class="mb-2">
+            <label class="font-bold text-xs block">NOTA 1:</label>
+            <input id="footer_nota1" class="w-full border border-gray-300 px-2 py-1 text-sm rounded"
+              value="HACER USO DE ELEMENTOS DE SEGURIDAD INDUSTRIAL." />
+          </div>
+          <div>
+            <label class="font-bold text-xs block">NOTA 2:</label>
+            <input id="footer_nota2" class="w-full border border-gray-300 px-2 py-1 text-sm rounded"
+              value="LOS ELEMENTOS INSERTOS EN EL ACUEDUCTO SE DEBEN REFERENCIAR DESCUBIERTOS." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="mt-4 flex gap-2 justify-end flex-wrap no-print">
+        <button id="addActivityBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2">
+          ➕ Agregar Actividad
+        </button>
+
+        <button id="saveBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2">
+          💾 Guardar (JSON)
+        </button>
+
+        <button id="exportExcelBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded flex items-center gap-2">
+          📊 Exportar Excel
+        </button>
+
+        <button id="printBtn" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center gap-2">
+          🖨️ Exportar / Imprimir
+        </button>
+
+        <button id="emailOpenBtn" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded flex items-center gap-2">
+          ✉️ Enviar por Email
+        </button>
+      </div>
+
+      <!-- Modal de Email -->
+      <div id="emailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold">Enviar Orden de Trabajo por Email</h2>
+              <button id="emailCloseBtn" class="text-gray-500 hover:text-gray-700">✖</button>
+            </div>
+
+            <div class="mb-4">
+              <label class="block font-bold mb-2">Nota:</label>
+              <p class="text-sm text-gray-600 mb-2">Este archivo está configurado sin EmailJS. El envío abrirá el cliente de correo (mailto:) y deberás adjuntar manualmente el archivo exportado si lo deseas enviar.</p>
+            </div>
+
+            <div class="mb-4">
+              <label class="block font-bold mb-2">Asunto:</label>
+              <input id="emailSubject" type="text" value="Orden de Trabajo Topografía" class="w-full border border-gray-300 rounded px-3 py-2" />
+            </div>
+
+            <div class="mb-4">
+              <label class="block font-bold mb-2">Mensaje:</label>
+              <textarea id="emailMessage" class="w-full border border-gray-300 rounded px-3 py-2" rows="4">Adjunto encontrará la orden de trabajo de topografía.</textarea>
+            </div>
+
+            <div class="mb-4">
+              <label class="block font-bold mb-2">Destinatarios (separados por coma):</label>
+              <input id="emailRecipients" type="text" value="" placeholder="correo1@ejemplo.com, correo2@ejemplo.com" class="w-full border border-gray-300 rounded px-3 py-2" />
+            </div>
+
+            <div class="flex gap-2 justify-end">
+              <button id="emailCancel" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Cancelar</button>
+              <button id="emailSend" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded">✉️ Abrir cliente de correo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensajes / logs -->
+      <div id="msgBox" class="mt-4"></div>
+
+    </div>
+  </div>
+
+  <script>
+  // Estado en memoria (similar a React)
+  let activities = [
+    {
+      id: 1,
+      actividad: 'REFERENCIAR VALVULA REPUESTA D.20 EN CONTRATO CO-300-3132-2024',
+      direccionProg: 'CR 14 CL 6 A',
+      proyectoBarrio: 'SAN JUAN BOSCO',
+      comuna: '9',
+      municipio: 'CALI',
+      tipoProyecto: 'REP',
+      horaInicio: '14:10',
+      horaTermina: '14:50',
+      refEnsamblador: 'REF',
+      direccionEjec: 'CR 14 CL 6 A',
+      plano: 'N/A',
+      cartera: 'N/A',
+      trayecto: 'N/A',
+      instalada: 'SI',
+      fechaProxima: 'N/A',
+      estadoActividad: 'T',
+      estadoObra: 'E',
+      observaciones: 'SE REFERENCIÓ VALVULA REPUESTA D.20\" EN TUBERIA CCP'
+    }
+  ];
+
+  // Referencias DOM
+  const activitiesBody = document.getElementById('activitiesBody');
+  const addActivityBtn = document.getElementById('addActivityBtn');
+  const saveBtn = document.getElementById('saveBtn');
+  const exportExcelBtn = document.getElementById('exportExcelBtn');
+  const printBtn = document.getElementById('printBtn');
+  const emailOpenBtn = document.getElementById('emailOpenBtn');
+  const emailModal = document.getElementById('emailModal');
+  const emailCloseBtn = document.getElementById('emailCloseBtn');
+  const emailCancel = document.getElementById('emailCancel');
+  const emailSend = document.getElementById('emailSend');
+  const emailSubject = document.getElementById('emailSubject');
+  const emailMessage = document.getElementById('emailMessage');
+  const emailRecipients = document.getElementById('emailRecipients');
+  const msgBox = document.getElementById('msgBox');
+
+  function showMsg(text, success = true) {
+    msgBox.innerHTML = '<div class="p-3 rounded ' + (success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') + '">' + text + '</div>';
+    setTimeout(()=> msgBox.innerHTML = '', 5000);
+  }
+
+  // Render tabla desde activities[]
+  function renderActivities() {
+    activitiesBody.innerHTML = '';
+    activities.forEach(act => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-gray-50';
+
+      function tdInput(value, onChange, classes = '') {
+        const td = document.createElement('td');
+        td.className = 'border border-black p-1 ' + classes;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = value || '';
+        input.className = 'w-full px-1 py-1 text-xs';
+        input.oninput = (e) => onChange(e.target.value);
+        td.appendChild(input);
+        return td;
+      }
+
+      function tdTextarea(value, onChange) {
+        const td = document.createElement('td');
+        td.className = 'border border-black p-1';
+        const textarea = document.createElement('textarea');
+        textarea.value = value || '';
+        textarea.rows = 2;
+        textarea.className = 'w-full px-1 py-1 text-xs';
+        textarea.oninput = (e) => onChange(e.target.value);
+        td.appendChild(textarea);
+        return td;
+      }
+
+      tr.appendChild(tdInput(act.actividad, v => updateActivityField(act.id, 'actividad', v)));
+      tr.appendChild(tdInput(act.direccionProg, v => updateActivityField(act.id, 'direccionProg', v)));
+      tr.appendChild(tdInput(act.proyectoBarrio, v => updateActivityField(act.id, 'proyectoBarrio', v)));
+      tr.appendChild(tdInput(act.comuna, v => updateActivityField(act.id, 'comuna', v)));
+      tr.appendChild(tdInput(act.municipio, v => updateActivityField(act.id, 'municipio', v)));
+      tr.appendChild(tdInput(act.tipoProyecto, v => updateActivityField(act.id, 'tipoProyecto', v)));
+      tr.appendChild(tdInput(act.horaInicio, v => updateActivityField(act.id, 'horaInicio', v)));
+      tr.appendChild(tdInput(act.horaTermina, v => updateActivityField(act.id, 'horaTermina', v)));
+      tr.appendChild(tdInput(act.refEnsamblador, v => updateActivityField(act.id, 'refEnsamblador', v)));
+      tr.appendChild(tdInput(act.direccionEjec, v => updateActivityField(act.id, 'direccionEjec', v)));
+      tr.appendChild(tdInput(act.plano, v => updateActivityField(act.id, 'plano', v)));
+      tr.appendChild(tdInput(act.cartera, v => updateActivityField(act.id, 'cartera', v)));
+      tr.appendChild(tdInput(act.trayecto, v => updateActivityField(act.id, 'trayecto', v)));
+      tr.appendChild(tdInput(act.instalada, v => updateActivityField(act.id, 'instalada', v)));
+      tr.appendChild(tdInput(act.fechaProxima, v => updateActivityField(act.id, 'fechaProxima', v)));
+      tr.appendChild(tdInput(act.estadoActividad, v => updateActivityField(act.id, 'estadoActividad', v)));
+      tr.appendChild(tdInput(act.estadoObra, v => updateActivityField(act.id, 'estadoObra', v)));
+      tr.appendChild(tdTextarea(act.observaciones, v => updateActivityField(act.id, 'observaciones', v)));
+
+      // acciones
+      const tdActions = document.createElement('td');
+      tdActions.className = 'border border-black p-1';
+      const delBtn = document.createElement('button');
+      delBtn.className = 'bg-red-500 hover:bg-red-600 text-white p-1 rounded';
+      delBtn.innerText = 'Eliminar';
+      delBtn.onclick = () => deleteActivity(act.id);
+      tdActions.appendChild(delBtn);
+      tr.appendChild(tdActions);
+
+      activitiesBody.appendChild(tr);
+    });
+  }
+
+  function updateActivityField(id, field, value) {
+    activities = activities.map(a => a.id === id ? { ...a, [field]: value } : a);
+    renderActivities();
+  }
+
+  function addActivity() {
+    const newId = activities.length ? Math.max(...activities.map(a => a.id)) + 1 : 1;
+    const newAct = {
+      id: newId,
+      actividad: '',
+      direccionProg: '',
+      proyectoBarrio: '',
+      comuna: '',
+      municipio: 'CALI',
+      tipoProyecto: 'REP',
+      horaInicio: '',
+      horaTermina: '',
+      refEnsamblador: '',
+      direccionEjec: '',
+      plano: 'N/A',
+      cartera: 'N/A',
+      trayecto: 'N/A',
+      instalada: '',
+      fechaProxima: '',
+      estadoActividad: '',
+      estadoObra: '',
+      observaciones: ''
+    };
+    activities.push(newAct);
+    renderActivities();
+  }
+
+  function deleteActivity(id) {
+    activities = activities.filter(a => a.id !== id);
+    renderActivities();
+  }
+
+  // Save JSON local
+  function saveWorkOrder() {
+    const wo = collectWorkOrder();
+    const data = { workOrder: wo, activities, footer: collectFooter() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const fileName = `Orden_Trabajo_${wo.codigo}_${wo.fecha.anio || ''}${wo.fecha.mes || ''}${wo.fecha.dia || ''}.json`;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showMsg('Orden de trabajo guardada (JSON).');
+  }
+
+  // Export to Excel using SheetJS
+  function exportToExcel() {
+    const wo = collectWorkOrder();
+    const footer = collectFooter();
+
+    // header
+    const headerData = [
+      ['ORDEN DE TRABAJO TOPOGRAFÍA'],
+      [],
+      ['CÓDIGO', wo.codigo, '', 'VERSIÓN', wo.version],
+      [],
+      ['DEPARTAMENTO', wo.departamento],
+      ['ÁREA FUNCIONAL'],
+      ['DISTRIBUCIÓN', wo.distribucion],
+      ['ACTIVIDAD', wo.actividad],
+      ['INTEGRANTES EMCALI', wo.integrantes],
+      ['CONDUCE', wo.conduce],
+      [],
+      ['FECHA', (wo.fecha.anio || '') + '/' + (wo.fecha.mes || '') + '/' + (wo.fecha.dia || '')],
+      ['HORA SALIDA', wo.horaSalida],
+      ['HORA ENTRADA', wo.horaEntrada],
+      ['ORDEN No.', wo.ordenNo],
+      ['PLACAS VEHÍCULO', wo.placasVehiculo],
+      []
+    ];
+
+    const activityHeaders = [
+      'Actividad a Realizar',
+      'Dirección Programación',
+      'Proyecto/Barrio',
+      'Comuna',
+      'Municipio',
+      'Tipo Proyecto',
+      'Hora Inicio',
+      'Hora Termina',
+      'Ref. Ensamblador',
+      'Dirección Ejecución',
+      'Plano No.',
+      'Cartera/Trayecto No.',
+      'Pág.',
+      'Instalada/Empleada',
+      'Fecha Próxima',
+      'Estado Actividad',
+      'Estado Obra',
+      'Observaciones'
+    ];
+
+    const activityData = activities.map(act => [
+      act.actividad, act.direccionProg, act.proyectoBarrio, act.comuna,
+      act.municipio, act.tipoProyecto, act.horaInicio, act.horaTermina,
+      act.refEnsamblador, act.direccionEjec, act.plano, act.cartera,
+      act.trayecto, act.instalada, act.fechaProxima, act.estadoActividad,
+      act.estadoObra, act.observaciones
+    ]);
+
+    const allData = [
+      ...headerData,
+      activityHeaders,
+      ...activityData,
+      [],
+      ['OBSERVACIONES', footer.observaciones],
+      [],
+      ['PROGRAMA', footer.programa],
+      ['NOMBRE', footer.nombre1],
+      ['REGISTRO', footer.registro],
+      ['EJECUTA', footer.ejecuta],
+      ['NOMBRE', footer.nombre2],
+      [],
+      ['NOTA 1', footer.nota1],
+      ['NOTA 2', footer.nota2]
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(allData);
+
+    // ajustar anchos aproximados
+    ws['!cols'] = [
+      { wch: 40 }, { wch: 25 }, { wch: 25 }, { wch: 8 }, { wch: 12 }, { wch: 12 },
+      { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 25 }, { wch: 10 }, { wch: 10 },
+      { wch: 8 }, { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 40 }
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Orden de Trabajo');
+
+    const fileName = `Orden_Trabajo_${wo.codigo}_${wo.fecha.anio || ''}${wo.fecha.mes || ''}${wo.fecha.dia || ''}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    showMsg('Excel exportado.');
+  }
+
+  // Collect form data
+  function collectWorkOrder() {
+    return {
+      codigo: document.getElementById('codigo').value,
+      version: document.getElementById('version').value,
+      departamento: document.getElementById('departamento').value,
+      distribucion: document.getElementById('distribucion').value,
+      actividad: document.getElementById('actividad').value,
+      integrantes: document.getElementById('integrantes').value,
+      conduce: document.getElementById('conduce').value,
+      fecha: {
+        anio: document.getElementById('fecha_anio').value,
+        mes: document.getElementById('fecha_mes').value,
+        dia: document.getElementById('fecha_dia').value
+      },
+      horaSalida: document.getElementById('horaSalida').value,
+      horaEntrada: document.getElementById('horaEntrada').value,
+      ordenNo: document.getElementById('ordenNo').value,
+      placasVehiculo: document.getElementById('placasVehiculo').value
+    };
+  }
+
+  function collectFooter() {
+    return {
+      observaciones: document.getElementById('footer_observaciones').value,
+      programa: document.getElementById('footer_programa').value,
+      nombre1: document.getElementById('footer_nombre1').value,
+      registro: document.getElementById('footer_registro').value,
+      ejecuta: document.getElementById('footer_ejecuta').value,
+      nombre2: document.getElementById('footer_nombre2').value,
+      nota1: document.getElementById('footer_nota1').value,
+      nota2: document.getElementById('footer_nota2').value
+    };
+  }
+
+  // Email modal handlers (mailto fallback only)
+  emailOpenBtn.onclick = () => { emailModal.classList.remove('hidden'); };
+  emailCloseBtn.onclick = () => { emailModal.classList.add('hidden'); };
+  emailCancel.onclick = () => { emailModal.classList.add('hidden'); };
+
+  emailSend.onclick = () => {
+    const recipientsRaw = emailRecipients.value.trim();
+    if (!recipientsRaw) { alert('Ingresa al menos un destinatario.'); return; }
+    const recipients = recipientsRaw.split(',').map(s => s.trim()).filter(Boolean);
+    const subject = emailSubject.value;
+    const message = emailMessage.value;
+    const body = encodeURIComponent(message + '\n\n(Adjunte el archivo Excel/JSON exportado desde la aplicación.)');
+    const mailto = `mailto:${recipients.join(',')}?subject=${encodeURIComponent(subject)}&body=${body}`;
+    window.location.href = mailto;
+    showMsg('Se abrió cliente de correo (mailto). Adjunta el archivo exportado manualmente.');
+    emailModal.classList.add('hidden');
+  };
+
+  // Botones
+  addActivityBtn.onclick = addActivity;
+  saveBtn.onclick = saveWorkOrder;
+  exportExcelBtn.onclick = exportToExcel;
+  printBtn.onclick = () => window.print();
+
+  // Render inicial
+  renderActivities();
+
+  // Fin script
+  </script>
+</body>
+</html>
