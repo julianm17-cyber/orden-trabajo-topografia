@@ -332,37 +332,53 @@
     setTimeout(()=> msgBox.innerHTML = '', 5000);
   }
 
-  // Render tabla desde activities[]
-  function renderActivities() {
-    activitiesBody.innerHTML = '';
-    activities.forEach(act => {
-      const tr = document.createElement('tr');
-      tr.className = 'hover:bg-gray-50';
+  // Función mejorada para crear inputs con selección rápida y eliminación
+function tdInput(value, onChange, classes = '') {
+  const td = document.createElement('td');
+  td.className = 'border border-black p-1 ' + classes;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = value || '';
+  input.className = 'w-full px-1 py-1 text-xs';
+  input.oninput = (e) => onChange(e.target.value);
+  
+  // Seleccionar todo el texto al hacer clic
+  input.onclick = function() {
+    this.select();
+  };
+  
+  // Seleccionar todo al recibir foco con tab
+  input.onfocus = function() {
+    this.select();
+  };
+  
+  td.appendChild(input);
+  return td;
+}
 
-      function tdInput(value, onChange, classes = '') {
-        const td = document.createElement('td');
-        td.className = 'border border-black p-1 ' + classes;
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = value || '';
-        input.className = 'w-full px-1 py-1 text-xs';
-        input.oninput = (e) => onChange(e.target.value);
-        td.appendChild(input);
-        return td;
-      }
-
-      function tdTextarea(value, onChange) {
-        const td = document.createElement('td');
-        td.className = 'border border-black p-1';
-        const textarea = document.createElement('textarea');
-        textarea.value = value || '';
-        textarea.rows = 2;
-        textarea.className = 'w-full px-1 py-1 text-xs';
-        textarea.oninput = (e) => onChange(e.target.value);
-        td.appendChild(textarea);
-        return td;
-      }
-
+// Función mejorada para textareas con selección rápida
+function tdTextarea(value, onChange) {
+  const td = document.createElement('td');
+  td.className = 'border border-black p-1';
+  const textarea = document.createElement('textarea');
+  textarea.value = value || '';
+  textarea.rows = 2;
+  textarea.className = 'w-full px-1 py-1 text-xs';
+  textarea.oninput = (e) => onChange(e.target.value);
+  
+  // Seleccionar todo el texto al hacer clic
+  textarea.onclick = function() {
+    this.select();
+  };
+  
+  // Seleccionar todo al recibir foco con tab
+  textarea.onfocus = function() {
+    this.select();
+  };
+  
+  td.appendChild(textarea);
+  return td;
+}
       tr.appendChild(tdInput(act.actividad, v => updateActivityField(act.id, 'actividad', v)));
       tr.appendChild(tdInput(act.direccionProg, v => updateActivityField(act.id, 'direccionProg', v)));
       tr.appendChild(tdInput(act.proyectoBarrio, v => updateActivityField(act.id, 'proyectoBarrio', v)));
